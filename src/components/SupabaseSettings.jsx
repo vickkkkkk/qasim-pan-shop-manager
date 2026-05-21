@@ -50,7 +50,8 @@ const SupabaseSettings = ({ onSettingsChange }) => {
     if (onSettingsChange) onSettingsChange();
   };
 
-  const sqlSchema = `create table daily_records (
+  const sqlSchema = `-- 1. Daily Records Ledger Table
+create table daily_records (
   id uuid default gen_random_uuid() primary key,
   date date not null unique,
   sales numeric not null default 0,
@@ -62,14 +63,46 @@ const SupabaseSettings = ({ onSettingsChange }) => {
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable Row Level Security (RLS)
+-- Enable RLS and public policies for daily_records
 alter table daily_records enable row level security;
-
--- Add anonymous CRUD policies (Standard for client-only hosting)
 create policy "Allow public read access" on daily_records for select using (true);
 create policy "Allow public insert" on daily_records for insert with check (true);
 create policy "Allow public update" on daily_records for update using (true);
-create policy "Allow public delete" on daily_records for delete using (true);`;
+create policy "Allow public delete" on daily_records for delete using (true);
+
+-- 2. Employees Database Table
+create table employees (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  per_day_salary numeric not null default 0,
+  address text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS and public policies for employees
+alter table employees enable row level security;
+create policy "Allow public read access" on employees for select using (true);
+create policy "Allow public insert" on employees for insert with check (true);
+create policy "Allow public update" on employees for update using (true);
+create policy "Allow public delete" on employees for delete using (true);
+
+-- 3. Staff Attendance & Payroll Table
+create table attendance (
+  id uuid default gen_random_uuid() primary key,
+  employee_id uuid references employees(id) on delete cascade not null,
+  date date not null,
+  status text not null check (status in ('present', 'absent')),
+  paid boolean not null default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique (employee_id, date)
+);
+
+-- Enable RLS and public policies for attendance
+alter table attendance enable row level security;
+create policy "Allow public read access" on attendance for select using (true);
+create policy "Allow public insert" on attendance for insert with check (true);
+create policy "Allow public update" on attendance for update using (true);
+create policy "Allow public delete" on attendance for delete using (true);`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sqlSchema);

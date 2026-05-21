@@ -308,3 +308,391 @@ export const reinitializeSupabase = () => {
     return false;
   }
 };
+
+// ==========================================
+// EMPLOYEES & ATTENDANCE OPERATIONS
+// ==========================================
+
+const EMPLOYEES_KEY = 'qasim_pan_shop_employees';
+const ATTENDANCE_KEY = 'qasim_pan_shop_attendance';
+
+const DEFAULT_EMPLOYEES = [
+  { id: 'emp-1', name: 'Ali Khan', per_day_salary: 1500, address: 'Main Bazar, Shop 4, Sector G' },
+  { id: 'emp-2', name: 'Bilal Ahmad', per_day_salary: 1200, address: 'Street 12, House 42, Sector F' },
+  { id: 'emp-3', name: 'Usman Farooq', per_day_salary: 1800, address: 'Near Bilal Mosque, Block C' }
+];
+
+const generateDemoAttendance = () => {
+  const attendance = [];
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  // Generate for the past 12 days
+  for (let d = 1; d <= 12; d++) {
+    const dateStr = new Date(year, month, d).toISOString().split('T')[0];
+
+    // Ali Khan: present 9 days, 7 paid, 2 unpaid
+    if (d <= 9) {
+      attendance.push({
+        id: `att-ali-${d}`,
+        employee_id: 'emp-1',
+        date: dateStr,
+        status: 'present',
+        paid: d <= 7
+      });
+    } else {
+      attendance.push({
+        id: `att-ali-${d}`,
+        employee_id: 'emp-1',
+        date: dateStr,
+        status: 'absent',
+        paid: false
+      });
+    }
+
+    // Bilal Ahmad: present 8 days, 8 paid, 0 unpaid
+    if (d <= 8) {
+      attendance.push({
+        id: `att-bil-${d}`,
+        employee_id: 'emp-2',
+        date: dateStr,
+        status: 'present',
+        paid: true
+      });
+    } else {
+      attendance.push({
+        id: `att-bil-${d}`,
+        employee_id: 'emp-2',
+        date: dateStr,
+        status: 'absent',
+        paid: false
+      });
+    }
+
+    // Usman Farooq: present 10 days, 6 paid, 4 unpaid
+    if (d <= 10) {
+      attendance.push({
+        id: `att-usm-${d}`,
+        employee_id: 'emp-3',
+        date: dateStr,
+        status: 'present',
+        paid: d <= 6
+      });
+    } else {
+      attendance.push({
+        id: `att-usm-${d}`,
+        employee_id: 'emp-3',
+        date: dateStr,
+        status: 'absent',
+        paid: false
+      });
+    }
+  }
+  return attendance;
+};
+
+const getRawAttendance = async () => {
+  let localData = localStorage.getItem(ATTENDANCE_KEY);
+  if (!localData) {
+    const demo = generateDemoAttendance();
+    localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(demo));
+    return demo;
+  }
+  try {
+    return JSON.parse(localData);
+  } catch (e) {
+    const demo = generateDemoAttendance();
+    localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(demo));
+    return demo;
+  }
+};
+
+export const getEmployees = async () => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('employees')
+        .select('*')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.error('Supabase getEmployees failed, falling back to LocalStorage:', e);
+    }
+  }
+
+  // LocalStorage Fallback
+  let localData = localStorage.getItem(EMPLOYEES_KEY);
+  if (!localData) {
+    localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(DEFAULT_EMPLOYEES));
+    return DEFAULT_EMPLOYEES;
+  }
+  try {
+    return JSON.parse(localData);
+  } catch (e) {
+    return DEFAULT_EMPLOYEES;
+  }
+};
+
+export const addEmployee = async (employee) => {
+  const newEmp = {
+    ...employee,
+    per_day_salary: parseFloat(employee.per_day_salary) || 0
+  };
+
+  if (isSupabaseConnected()) {
+    try {
+      const { id, ...supabaseEmp } = newEmp; // Allow UUID generation by database
+      const { data, error } = await supabase
+        .from('employees')
+        .insert([supabaseEmp])
+        .select();
+
+      if (error) throw error;
+      return { success: true, data: data[0] };
+    } catch (e) {
+      console.error('Supabase addEmployee failed:', e);
+      return { success: false, error: e.message || 'Supabase Insert Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const employees = await getEmployees();
+    const createdEmp = {
+      ...newEmp,
+      id: `emp-${Date.now()}`
+    };
+    employees.push(createdEmp);
+    localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(employees));
+    return { success: true, data: createdEmp };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const updateEmployee = async (id, updatedFields) => {
+  const parsedFields = {
+    ...updatedFields,
+    per_day_salary: parseFloat(updatedFields.per_day_salary) || 0
+  };
+
+  if (isSupabaseConnected()) {
+    try {
+      const { id: dummyId, created_at, ...updateData } = parsedFields;
+      const { data, error } = await supabase
+        .from('employees')
+        .update(updateData)
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      return { success: true, data: data[0] };
+    } catch (e) {
+      console.error('Supabase updateEmployee failed:', e);
+      return { success: false, error: e.message || 'Supabase Update Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const employees = await getEmployees();
+    const index = employees.findIndex(e => e.id === id);
+    if (index === -1) {
+      return { success: false, error: 'Employee not found.' };
+    }
+    const updated = {
+      ...employees[index],
+      ...parsedFields
+    };
+    employees[index] = updated;
+    localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(employees));
+    return { success: true, data: updated };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const deleteEmployee = async (id) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      console.error('Supabase deleteEmployee failed:', e);
+      return { success: false, error: e.message || 'Supabase Delete Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const employees = await getEmployees();
+    const filtered = employees.filter(e => e.id !== id);
+    localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(filtered));
+
+    // Also clean up local attendance records for this employee
+    const attendance = await getRawAttendance();
+    const filteredAttendance = attendance.filter(a => a.employee_id !== id);
+    localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(filteredAttendance));
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const getAttendance = async (date) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('date', date);
+
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.error(`Supabase getAttendance failed for ${date}:`, e);
+    }
+  }
+
+  // LocalStorage Fallback
+  const raw = await getRawAttendance();
+  return raw.filter(a => a.date === date);
+};
+
+export const saveAttendance = async (records) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .upsert(records, { onConflict: 'employee_id,date' })
+        .select();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (e) {
+      console.error('Supabase saveAttendance failed:', e);
+      return { success: false, error: e.message || 'Supabase Upsert Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const raw = await getRawAttendance();
+    records.forEach(rec => {
+      const index = raw.findIndex(a => a.employee_id === rec.employee_id && a.date === rec.date);
+      if (index !== -1) {
+        raw[index] = {
+          ...raw[index],
+          status: rec.status,
+          paid: rec.paid
+        };
+      } else {
+        raw.push({
+          ...rec,
+          id: `att-loc-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+        });
+      }
+    });
+    localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(raw));
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const getAttendanceRangeReport = async (startDate, endDate) => {
+  const employees = await getEmployees();
+  let attendance = [];
+
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .gte('date', startDate)
+        .lte('date', endDate);
+
+      if (error) throw error;
+      attendance = data;
+    } catch (e) {
+      console.error('Supabase range report failed, falling back to LocalStorage:', e);
+      const raw = await getRawAttendance();
+      attendance = raw.filter(a => a.date >= startDate && a.date <= endDate);
+    }
+  } else {
+    const raw = await getRawAttendance();
+    attendance = raw.filter(a => a.date >= startDate && a.date <= endDate);
+  }
+
+  return employees.map(emp => {
+    const empAtt = attendance.filter(a => a.employee_id === emp.id);
+    const presentDays = empAtt.filter(a => a.status === 'present').length;
+    const absentDays = empAtt.filter(a => a.status === 'absent').length;
+
+    const totalEarned = presentDays * emp.per_day_salary;
+    const paidWages = empAtt.filter(a => a.status === 'present' && a.paid).length * emp.per_day_salary;
+    const remainingBalance = totalEarned - paidWages;
+
+    return {
+      employeeId: emp.id,
+      name: emp.name,
+      perDaySalary: emp.per_day_salary,
+      address: emp.address || 'N/A',
+      presentDays,
+      absentDays,
+      totalEarned,
+      paidWages,
+      remainingBalance
+    };
+  });
+};
+
+export const payRemainingBalance = async (employeeId, startDate, endDate) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .update({ paid: true })
+        .eq('employee_id', employeeId)
+        .eq('status', 'present')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .select();
+
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      console.error('Supabase payRemainingBalance failed:', e);
+      return { success: false, error: e.message || 'Supabase Update Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const raw = await getRawAttendance();
+    raw.forEach((a, index) => {
+      if (
+        a.employee_id === employeeId &&
+        a.date >= startDate &&
+        a.date <= endDate &&
+        a.status === 'present'
+      ) {
+        raw[index].paid = true;
+      }
+    });
+    localStorage.setItem(ATTENDANCE_KEY, JSON.stringify(raw));
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
