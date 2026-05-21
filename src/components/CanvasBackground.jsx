@@ -12,12 +12,16 @@ const CanvasBackground = () => {
 
     let animationFrameId;
     let particles = [];
-    const maxParticles = 90;
-    const maxDistance = 120; // Connection line threshold
+    
+    // Mobile throttled settings
+    const isMobile = window.innerWidth < 768;
+    const maxParticles = isMobile ? 35 : 90;
+    const maxDistance = isMobile ? 90 : 120; // Connection line threshold
+    
     const mouse = {
       x: null,
       y: null,
-      radius: 180, // Mouse interaction boundary
+      radius: isMobile ? 120 : 180, // Mouse interaction boundary
     };
 
     // Responsive Canvas Resize
@@ -42,6 +46,17 @@ const CanvasBackground = () => {
     window.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseleave', handleMouseLeave);
 
+    // Dynamic color helper reading from CSS variables
+    const getAccentRGB = () => {
+      try {
+        const bodyStyle = getComputedStyle(document.body);
+        const rgb = bodyStyle.getPropertyValue('--theme-accent-rgb').trim();
+        return rgb || '20, 233, 178'; // fallback
+      } catch (e) {
+        return '20, 233, 178';
+      }
+    };
+
     // Particle Blueprint Class
     class Particle {
       constructor() {
@@ -51,14 +66,9 @@ const CanvasBackground = () => {
         this.vy = (Math.random() - 0.5) * 0.4; // Soft vertical speed
         this.baseSize = Math.random() * 2 + 1.5; // Size between 1.5px and 3.5px
         this.size = this.baseSize;
-        // Vibrant neon glow colors matching the shop theme
-        const colors = [
-          'rgba(20, 233, 178, 0.45)',  // Neon Teal
-          'rgba(147, 51, 234, 0.45)',  // Radiant Violet
-          'rgba(6, 182, 212, 0.45)',   // Cool Cyan
-          'rgba(245, 158, 11, 0.45)',  // Warm Amber
-        ];
-        this.color = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Random slight alpha offset to make nodes feel organic
+        this.alphaOffset = Math.random() * 0.2;
       }
 
       update() {
@@ -96,13 +106,15 @@ const CanvasBackground = () => {
         }
       }
 
-      draw() {
+      draw(activeRgb) {
+        const pColor = `rgba(${activeRgb}, ${0.35 + this.alphaOffset})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = pColor;
+        
         // Apply micro radial glow
         ctx.shadowBlur = mouse.x !== null ? 8 : 0;
-        ctx.shadowColor = this.color;
+        ctx.shadowColor = `rgba(${activeRgb}, 0.8)`;
         ctx.fill();
         ctx.shadowBlur = 0; // Reset
       }
@@ -118,7 +130,7 @@ const CanvasBackground = () => {
     initParticles();
 
     // Constellation lines builder
-    const drawConnections = () => {
+    const drawConnections = (activeRgb) => {
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
@@ -147,15 +159,9 @@ const CanvasBackground = () => {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            // Dynamic color shift using linear gradient
-            const gradient = ctx.createLinearGradient(
-              particles[i].x, particles[i].y,
-              particles[j].x, particles[j].y
-            );
-            gradient.addColorStop(0, particles[i].color.replace('0.45', alpha.toString()));
-            gradient.addColorStop(1, particles[j].color.replace('0.45', alpha.toString()));
-
-            ctx.strokeStyle = gradient;
+            
+            // Dynamic color stroke using reactive accent RGB from theme
+            ctx.strokeStyle = `rgba(${activeRgb}, ${alpha})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
@@ -172,7 +178,7 @@ const CanvasBackground = () => {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(mouse.x, mouse.y);
-            ctx.strokeStyle = `rgba(20, 233, 178, ${alpha})`; // Glowing teal lines to cursor
+            ctx.strokeStyle = `rgba(${activeRgb}, ${alpha})`; // Glowing reactive lines to cursor
             ctx.lineWidth = 1.0;
             ctx.stroke();
           }
@@ -180,18 +186,35 @@ const CanvasBackground = () => {
       }
     };
 
+    // Primary loop visibility control (Battery & CPU Saver)
+    let isTabVisible = true;
+    const handleVisibilityChange = () => {
+      isTabVisible = !document.hidden;
+      if (isTabVisible) {
+        animate();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Primary loop
     const animate = () => {
+      if (!isTabVisible) {
+        cancelAnimationFrame(animationFrameId);
+        return;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
+      const activeRgb = getAccentRGB();
+
       // Update & Draw particles
       particles.forEach((p) => {
         p.update();
-        p.draw();
+        p.draw(activeRgb);
       });
 
       // Join connections
-      drawConnections();
+      drawConnections(activeRgb);
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -202,6 +225,7 @@ const CanvasBackground = () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

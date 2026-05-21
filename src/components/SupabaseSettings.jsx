@@ -1,8 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Link, Link2Off, CheckCircle, HelpCircle, Copy, Check } from 'lucide-react';
+import { Database, Link, Link2Off, CheckCircle, HelpCircle, Copy, Check, Palette } from 'lucide-react';
 import { getSupabaseSettings, saveSupabaseSettings, clearSupabaseSettings, isSupabaseConnected, reinitializeSupabase } from '../utils/db';
 
-const SupabaseSettings = ({ onSettingsChange }) => {
+const themesList = [
+  {
+    id: 'mint',
+    name: 'Mint Constellation',
+    subtitle: 'Sleek neon teal & cool stardust blues',
+    color: '#14e9b2',
+    gradient: 'linear-gradient(135deg, #14e9b2 0%, #0ea5e9 100%)',
+    description: 'The classic shop interface. Extremely legible and cool on the eyes.'
+  },
+  {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Violet',
+    subtitle: 'Vibrant futuristic magenta & hot pinks',
+    color: '#d946ef',
+    gradient: 'linear-gradient(135deg, #d946ef 0%, #ec4899 100%)',
+    description: 'Electric neon tones for an energetic and modern arcade-like layout.'
+  },
+  {
+    id: 'emerald',
+    name: 'Emerald Forest',
+    subtitle: 'Lush bio-luminescent green & toxic lime',
+    color: '#10b981',
+    gradient: 'linear-gradient(135deg, #10b981 0%, #84cc16 100%)',
+    description: 'Smooth, natural forest vibe combined with premium neon matrix elements.'
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora Gold',
+    subtitle: 'Warm glowing amber & solar aurora rose',
+    color: '#facc15',
+    gradient: 'linear-gradient(135deg, #facc15 0%, #f43f5e 100%)',
+    description: 'Golden high-end solar palette with dramatic rose fire gradients.'
+  }
+];
+
+const SupabaseSettings = ({ onSettingsChange, activeTheme, onChangeTheme }) => {
   const [settings, setSettings] = useState({ url: '', anonKey: '' });
   const [isConnected, setIsConnected] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -112,7 +147,137 @@ create policy "Allow public delete" on attendance for delete using (true);`;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-      
+
+      {/* Theme Customizer Card */}
+      <div 
+        className="glass-card"
+        style={{
+          background: 'rgba(17, 20, 38, 0.45)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <Palette size={20} style={{ color: 'var(--theme-accent)' }} />
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600', color: '#fff' }}>
+            System Color Customization
+          </h3>
+          <span 
+            style={{ 
+              fontSize: '11px', 
+              fontWeight: '700',
+              padding: '3px 8px',
+              borderRadius: '20px',
+              marginLeft: 'auto',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              background: 'var(--theme-accent-dim)',
+              color: 'var(--theme-accent)',
+              border: '1px solid var(--theme-accent-border)',
+              boxShadow: '0 0 10px var(--theme-accent-dim)'
+            }}
+          >
+            4 Neon Presets
+          </span>
+        </div>
+
+        <p style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.55)', margin: '0 0 20px 0', lineHeight: '1.5' }}>
+          Instantly transform your shop's dashboard palette. Changing the theme dynamically morphs the interactive stardust particles and active highlight colors in real-time.
+        </p>
+
+        {/* Theme Grid */}
+        <div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '16px',
+            width: '100%'
+          }}
+        >
+          {themesList.map((t) => {
+            const isSelected = activeTheme === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => onChangeTheme && onChangeTheme(t.id)}
+                style={{
+                  background: isSelected ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.01)',
+                  border: isSelected ? `2.5px solid ${t.color}` : '1.5px solid rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  outline: 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  boxShadow: isSelected ? `0 0 20px ${t.color}20` : 'none',
+                  transform: isSelected ? 'translateY(-2px)' : 'none',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                className="theme-card-option"
+                onMouseEnter={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) {
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.01)';
+                  }
+                }}
+              >
+                {/* Gradient Pill Preview */}
+                <div 
+                  style={{
+                    height: '24px',
+                    width: '100%',
+                    background: t.gradient,
+                    borderRadius: '6px',
+                    boxShadow: `0 2px 10px ${t.color}25`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    paddingRight: '8px'
+                  }}
+                >
+                  {isSelected && (
+                    <div 
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: '#fff',
+                        boxShadow: '0 0 4px rgba(0,0,0,0.5)'
+                      }}
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '15px', fontWeight: '700', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {t.name}
+                  </h4>
+                  <span style={{ fontSize: '11px', fontWeight: '600', color: t.color, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                    {t.subtitle}
+                  </span>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.45)', lineHeight: '1.4' }}>
+                    {t.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Configuration Card */}
       <div 
         className="glass-card"

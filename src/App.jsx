@@ -39,6 +39,16 @@ function App() {
   const [dbConnected, setDbConnected] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Dynamic Theme Customizer State & Effects
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('qasim_shop_theme') || 'mint';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('qasim_shop_theme', theme);
+    document.body.setAttribute('data-theme', theme);
+  }, [theme]);
+
   // Session state loaded from LocalStorage
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('qasim_shop_user');
@@ -374,6 +384,33 @@ function App() {
           </button>
         </div>
 
+        {/* Theme Quick Switcher HUD */}
+        <div className="theme-switcher-hud">
+          <span className="theme-switcher-title">Select Theme</span>
+          <div className="theme-switcher-bubbles">
+            <button 
+              onClick={() => setTheme('mint')}
+              className={`theme-bubble-btn mint-bubble ${theme === 'mint' ? 'active' : ''}`}
+              title="Mint Constellation"
+            />
+            <button 
+              onClick={() => setTheme('cyberpunk')}
+              className={`theme-bubble-btn cyberpunk-bubble ${theme === 'cyberpunk' ? 'active' : ''}`}
+              title="Cyberpunk Violet"
+            />
+            <button 
+              onClick={() => setTheme('emerald')}
+              className={`theme-bubble-btn emerald-bubble ${theme === 'emerald' ? 'active' : ''}`}
+              title="Emerald Forest"
+            />
+            <button 
+              onClick={() => setTheme('aurora')}
+              className={`theme-bubble-btn aurora-bubble ${theme === 'aurora' ? 'active' : ''}`}
+              title="Aurora Gold"
+            />
+          </div>
+        </div>
+
         <nav className="sidebar-nav">
           <button 
             onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
@@ -650,7 +687,11 @@ function App() {
 
             {/* TAB 4: SYSTEM SETTINGS VIEW */}
             {activeTab === 'settings' && currentUser?.role !== 'viewer' && (
-              <SupabaseSettings onSettingsChange={handleSettingsChange} />
+              <SupabaseSettings 
+                onSettingsChange={handleSettingsChange} 
+                activeTheme={theme}
+                onChangeTheme={setTheme}
+              />
             )}
 
           </div>
