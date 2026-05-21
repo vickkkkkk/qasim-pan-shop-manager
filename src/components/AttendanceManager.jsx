@@ -433,21 +433,8 @@ const AttendanceManager = ({ currentUser }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Header Filtering and Saving Panel */}
-          <div 
-            className="glass-card"
-            style={{
-              padding: '18px 24px',
-              borderRadius: '16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-              background: 'rgba(17, 20, 38, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="attendance-header-card">
+            <div className="attendance-header-controls">
               <Calendar size={18} style={{ color: '#14e9b2' }} />
               <span style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>Select Logs Date:</span>
               <input 
@@ -481,7 +468,7 @@ const AttendanceManager = ({ currentUser }) => {
           </div>
 
           {/* KPI Mini-Summaries */}
-          <div className="kpis-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          <div className="attendance-kpis-grid">
             <div className="glass-card" style={{ padding: '16px', display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(17,20,38,0.3)', border: '1px solid rgba(255,255,255,0.04)' }}>
               <div style={{ padding: '10px', borderRadius: '10px', background: 'rgba(20,233,178,0.1)', color: '#14e9b2' }}>
                 <Users size={20} />
@@ -543,11 +530,11 @@ const AttendanceManager = ({ currentUser }) => {
             }}
           >
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+              <table className="compact-mobile-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Employee Details</th>
-                    <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Wage Rate (PKR)</th>
+                    <th className="hide-on-mobile" style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Wage Rate (PKR)</th>
                     <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' }}>Attendance logs</th>
                     <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' }}>Daily Payroll Status</th>
                   </tr>
@@ -592,11 +579,14 @@ const AttendanceManager = ({ currentUser }) => {
                               </div>
                               <div>
                                 <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{item.name}</div>
-                                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Registered Staff Member</div>
+                                <div className="hide-on-mobile" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Registered Staff Member</div>
+                                <div className="show-on-mobile-block" style={{ fontSize: '11px', color: 'var(--color-teal)', marginTop: '2px' }}>
+                                  Rate: {item.per_day_salary.toLocaleString()} PKR / Day
+                                </div>
                               </div>
                             </div>
                           </td>
-                          <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-display)' }}>
+                          <td className="hide-on-mobile" style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-display)' }}>
                             {item.per_day_salary.toLocaleString()} <span style={{ fontSize: '10.5px', color: 'rgba(255,255,255,0.4)', fontWeight: '500' }}>PKR / Day</span>
                           </td>
                           <td style={{ padding: '16px 24px', textAlign: 'center' }}>
@@ -695,22 +685,9 @@ const AttendanceManager = ({ currentUser }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Action Header bar */}
-          <div 
-            className="glass-card"
-            style={{
-              padding: '18px 24px',
-              borderRadius: '16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-              background: 'rgba(17, 20, 38, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
-            }}
-          >
+          <div className="attendance-header-card">
             {/* Search Input */}
-            <div style={{ position: 'relative', width: '280px' }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
               <input 
                 type="text"
                 placeholder="Search staff registry..."
@@ -746,12 +723,12 @@ const AttendanceManager = ({ currentUser }) => {
             }}
           >
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+              <table className="compact-mobile-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Employee Profile</th>
                     <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Daily Salary Rate</th>
-                    <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Address</th>
+                    <th className="hide-on-mobile" style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Address</th>
                     {isAdmin && <th style={{ padding: '16px 24px', fontSize: '12.5px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>}
                   </tr>
                 </thead>
@@ -799,13 +776,21 @@ const AttendanceManager = ({ currentUser }) => {
                                 <Award size={12} style={{ color: '#14e9b2' }} />
                                 Registered Staff
                               </div>
+                              <div className="show-on-mobile-block" style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <MapPin size={11} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+                                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
+                                    {emp.address || 'No address logged'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </td>
                         <td style={{ padding: '16px 24px', fontSize: '14px', fontWeight: '800', color: '#fff', fontFamily: 'var(--font-display)' }}>
                           {emp.per_day_salary.toLocaleString()} <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: '500' }}>PKR</span>
                         </td>
-                        <td style={{ padding: '16px 24px', fontSize: '13px', color: 'rgba(255,255,255,0.65)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={emp.address}>
+                        <td className="hide-on-mobile" style={{ padding: '16px 24px', fontSize: '13px', color: 'rgba(255,255,255,0.65)', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={emp.address}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <MapPin size={13} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
                             <span>{emp.address || 'No address logged'}</span>
@@ -957,21 +942,8 @@ const AttendanceManager = ({ currentUser }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           
           {/* Date Selector range block */}
-          <div 
-            className="glass-card"
-            style={{
-              padding: '18px 24px',
-              borderRadius: '16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-              background: 'rgba(17, 20, 38, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+          <div className="attendance-header-card">
+            <div className="attendance-header-controls">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', fontWeight: '600' }}>Start Date:</span>
                 <input 
@@ -1017,13 +989,13 @@ const AttendanceManager = ({ currentUser }) => {
             }}
           >
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
+              <table className="compact-mobile-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                     <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Employee</th>
                     <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' }}>Present Days</th>
-                    <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' }}>Absent Days</th>
-                    <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Total Earned</th>
+                    <th className="hide-on-mobile" style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'center' }}>Absent Days</th>
+                    <th className="hide-on-mobile" style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Total Earned</th>
                     <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Paid Amount</th>
                     <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase' }}>Remaining Unpaid</th>
                     {isAdmin && <th style={{ padding: '16px 20px', fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: '600', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>}
@@ -1050,18 +1022,21 @@ const AttendanceManager = ({ currentUser }) => {
                           <td style={{ padding: '16px 20px' }}>
                             <div>
                               <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{row.name}</div>
-                              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                              <div className="hide-on-mobile" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
                                 Rate: {row.perDaySalary.toLocaleString()} PKR / Day
+                              </div>
+                              <div className="show-on-mobile-block" style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                                Rate: {row.perDaySalary.toLocaleString()} PKR • Earned: {row.totalEarned.toLocaleString()} PKR
                               </div>
                             </div>
                           </td>
                           <td style={{ padding: '16px 20px', textAlign: 'center', fontSize: '14px', fontWeight: '700', color: '#fff' }}>
                             {row.presentDays}
                           </td>
-                          <td style={{ padding: '16px 20px', textAlign: 'center', fontSize: '14px', fontWeight: '700', color: 'rgba(255,255,255,0.4)' }}>
+                          <td className="hide-on-mobile" style={{ padding: '16px 20px', textAlign: 'center', fontSize: '14px', fontWeight: '700', color: 'rgba(255,255,255,0.4)' }}>
                             {row.absentDays}
                           </td>
-                          <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-display)' }}>
+                          <td className="hide-on-mobile" style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#fff', fontFamily: 'var(--font-display)' }}>
                             {row.totalEarned.toLocaleString()} <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>PKR</span>
                           </td>
                           <td style={{ padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#10b981', fontFamily: 'var(--font-display)' }}>

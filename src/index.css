@@ -648,3 +648,103 @@ select.form-input option {
   transform: translateY(0) scale(0.96);
 }
 
+/* Attendance & Payroll Mobile Responsiveness */
+.attendance-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .attendance-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .attendance-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .attendance-kpis-grid .glass-card {
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  .attendance-kpis-grid .glass-card div[style*="font-size: 20px"] {
+    font-size: 16px !important;
+  }
+  .attendance-kpis-grid .glass-card div[style*="font-size: 11px"] {
+    font-size: 9.5px !important;
+  }
+}
+
+.attendance-header-card {
+  padding: 18px 24px;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: rgba(17, 20, 38, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.attendance-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .attendance-header-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px;
+    gap: 12px;
+  }
+  .attendance-header-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px !important;
+  }
+  .attendance-header-card input[type="date"] {
+    width: 100% !important;
+  }
+  .attendance-header-card button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Responsive Table Utility Classes */
+.hide-on-mobile {
+  display: table-cell;
+}
+.show-on-mobile-block {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  .show-on-mobile-block {
+    display: block !important;
+  }
+  
+  .compact-mobile-table th {
+    padding: 12px 14px !important;
+    font-size: 11.5px !important;
+  }
+  .compact-mobile-table td {
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+  }
+}
+
+
