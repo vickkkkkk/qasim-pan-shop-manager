@@ -1,15 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Retrieve settings from local storage or environment
 const LOCAL_STORAGE_DB_KEY = 'qasim_pan_shop_db_records';
 const SETTINGS_KEY = 'qasim_pan_shop_supabase_settings';
+
+// Built-in default Supabase cloud credentials
+const DEFAULT_URL = 'https://whmdxujnjdwportxaloi.supabase.co';
+const DEFAULT_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndobWR4dWpuamR3cG9ydHhhbG9pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTY5MzMsImV4cCI6MjA5NDc5MjkzM30.LWdQ3MxIPYEWHd56gCczS7efQUIet_oVtzbdlH4jpxQ';
 
 export const getSupabaseSettings = () => {
   try {
     const saved = localStorage.getItem(SETTINGS_KEY);
-    return saved ? JSON.parse(saved) : { url: '', anonKey: '' };
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Ensure we only use saved credentials if they actually contain valid non-empty values
+      if (parsed.url && parsed.anonKey) {
+        return parsed;
+      }
+    }
+    // Default fallback is always your active Supabase cloud database
+    return { url: DEFAULT_URL, anonKey: DEFAULT_ANON_KEY };
   } catch (e) {
-    return { url: '', anonKey: '' };
+    return { url: DEFAULT_URL, anonKey: DEFAULT_ANON_KEY };
   }
 };
 
