@@ -15,7 +15,8 @@ import {
   LogOut,
   Menu,
   X,
-  Users
+  Users,
+  Package
 } from 'lucide-react';
 
 import CanvasBackground from './components/CanvasBackground';
@@ -26,6 +27,7 @@ import RecordModal from './components/RecordModal';
 import SupabaseSettings from './components/SupabaseSettings';
 import LoginScreen from './components/LoginScreen';
 import AttendanceManager from './components/AttendanceManager';
+import StockManager from './components/StockManager';
 
 import { getRecords, addRecord, updateRecord, deleteRecord, isSupabaseConnected } from './utils/db';
 
@@ -433,6 +435,13 @@ function App() {
             <Users size={18} />
             Attendance & Payroll
           </button>
+          <button 
+            onClick={() => { setActiveTab('stock'); setIsMobileMenuOpen(false); }}
+            className={`nav-item ${activeTab === 'stock' ? 'active' : ''}`}
+          >
+            <Package size={18} />
+            Stock Inventory
+          </button>
           {currentUser?.role !== 'viewer' && !dbConnected && (
             <button 
               onClick={() => { setActiveTab('settings'); setIsMobileMenuOpen(false); }}
@@ -507,12 +516,14 @@ function App() {
               {activeTab === 'dashboard' && 'Business Overview'}
               {activeTab === 'report' && 'Daily Sales Ledger'}
               {activeTab === 'attendance' && 'Staff Attendance & Payroll'}
+              {activeTab === 'stock' && 'Stock Inventory Manager'}
               {activeTab === 'settings' && 'System Configuration'}
             </h1>
             <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '4px' }}>
               {activeTab === 'dashboard' && 'Visual insights, key performance indicators, and shop earnings.'}
               {activeTab === 'report' && 'Full comprehensive database and search logs of all shop entries.'}
               {activeTab === 'attendance' && 'Track employee daily presence, calculate wages, and manage payouts.'}
+              {activeTab === 'stock' && 'Track brand items, crates, supply volume, and quick consumption.'}
               {activeTab === 'settings' && 'Manage your Supabase connections and database configuration.'}
             </p>
           </div>
@@ -520,7 +531,7 @@ function App() {
           {/* Header Action Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
             {/* Months Filter (Visible in Dashboard and Reports) */}
-            {activeTab !== 'settings' && activeTab !== 'attendance' && (
+            {activeTab !== 'settings' && activeTab !== 'attendance' && activeTab !== 'stock' && (
               <div style={{ position: 'relative' }}>
                 <select 
                   value={selectedMonth}
@@ -537,7 +548,7 @@ function App() {
             )}
 
             {/* "+ Add Daily Record" Button */}
-            {activeTab !== 'settings' && activeTab !== 'attendance' && currentUser?.role !== 'viewer' && (
+            {activeTab !== 'settings' && activeTab !== 'attendance' && activeTab !== 'stock' && currentUser?.role !== 'viewer' && (
               <button 
                 onClick={handleAddRecordClick}
                 className="btn btn-primary"
@@ -550,7 +561,7 @@ function App() {
         </header>
 
         {/* Demo Mode Notice Banner */}
-        {currentUser?.role !== 'viewer' && !dbConnected && activeTab !== 'settings' && activeTab !== 'attendance' && (
+        {currentUser?.role !== 'viewer' && !dbConnected && activeTab !== 'settings' && activeTab !== 'attendance' && activeTab !== 'stock' && (
           <div 
             style={{
               background: 'linear-gradient(90deg, rgba(250,204,21,0.06) 0%, rgba(20,233,178,0.06) 100%)',
@@ -683,6 +694,11 @@ function App() {
             {/* TAB 3: ATTENDANCE & PAYROLL VIEW */}
             {activeTab === 'attendance' && (
               <AttendanceManager currentUser={currentUser} />
+            )}
+
+            {/* TAB 5: STOCK INVENTORY VIEW */}
+            {activeTab === 'stock' && (
+              <StockManager currentUser={currentUser} />
             )}
 
             {/* TAB 4: SYSTEM SETTINGS VIEW */}

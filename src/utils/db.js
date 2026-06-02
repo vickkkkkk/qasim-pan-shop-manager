@@ -696,3 +696,304 @@ export const payRemainingBalance = async (employeeId, startDate, endDate) => {
   }
 };
 
+// ==========================================
+// STOCK INVENTORY OPERATIONS (BRANDS & PRODUCTS)
+// ==========================================
+
+const BRANDS_KEY = 'qasim_pan_shop_brands';
+const PRODUCTS_KEY = 'qasim_pan_shop_products';
+
+const DEFAULT_BRANDS = [
+  { id: 'brand-1', name: 'Coca-Cola' },
+  { id: 'brand-2', name: 'PepsiCo' },
+  { id: 'brand-3', name: 'Shezan' },
+  { id: 'brand-4', name: 'Gold Leaf' },
+  { id: 'brand-5', name: 'Capstan' }
+];
+
+const DEFAULT_PRODUCTS = [
+  { id: 'prod-1', brand_id: 'brand-1', name: 'Zero Sugar Can', quantity: 24 },
+  { id: 'prod-2', brand_id: 'brand-1', name: 'Regular Can', quantity: 48 },
+  { id: 'prod-3', brand_id: 'brand-1', name: '1.5L PET', quantity: 12 },
+  { id: 'prod-4', brand_id: 'brand-1', name: '500ml PET', quantity: 30 },
+  
+  { id: 'prod-5', brand_id: 'brand-2', name: 'Can', quantity: 36 },
+  { id: 'prod-6', brand_id: 'brand-2', name: '1.5L PET', quantity: 15 },
+  { id: 'prod-7', brand_id: 'brand-2', name: '345ml Bottle', quantity: 24 },
+  
+  { id: 'prod-8', brand_id: 'brand-3', name: 'Mango Juice Box', quantity: 40 },
+  
+  { id: 'prod-9', brand_id: 'brand-4', name: 'Single Cigarette', quantity: 200 },
+  { id: 'prod-10', brand_id: 'brand-4', name: 'Pack of 20', quantity: 15 },
+  
+  { id: 'prod-11', brand_id: 'brand-5', name: 'Single Cigarette', quantity: 120 },
+  { id: 'prod-12', brand_id: 'brand-5', name: 'Pack of 20', quantity: 10 }
+];
+
+export const getBrands = async () => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .select('*')
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.error('Supabase getBrands failed, falling back to LocalStorage:', e);
+    }
+  }
+
+  // LocalStorage Fallback
+  let localData = localStorage.getItem(BRANDS_KEY);
+  if (!localData) {
+    localStorage.setItem(BRANDS_KEY, JSON.stringify(DEFAULT_BRANDS));
+    return DEFAULT_BRANDS;
+  }
+  try {
+    return JSON.parse(localData);
+  } catch (e) {
+    return DEFAULT_BRANDS;
+  }
+};
+
+export const addBrand = async (brand) => {
+  const newBrand = {
+    ...brand,
+    name: brand.name.trim()
+  };
+
+  if (isSupabaseConnected()) {
+    try {
+      const { id, ...supabaseBrand } = newBrand;
+      const { data, error } = await supabase
+        .from('brands')
+        .insert([supabaseBrand])
+        .select();
+      if (error) throw error;
+      return { success: true, data: data[0] };
+    } catch (e) {
+      console.error('Supabase addBrand failed:', e);
+      return { success: false, error: e.message || 'Supabase Insert Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const brands = await getBrands();
+    const exists = brands.some(b => b.name.toLowerCase() === newBrand.name.toLowerCase());
+    if (exists) {
+      return { success: false, error: `Brand "${newBrand.name}" already exists!` };
+    }
+    const createdBrand = {
+      ...newBrand,
+      id: `brand-${Date.now()}`
+    };
+    brands.push(createdBrand);
+    localStorage.setItem(BRANDS_KEY, JSON.stringify(brands));
+    return { success: true, data: createdBrand };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const deleteBrand = async (id) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { error } = await supabase
+        .from('brands')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      console.error('Supabase deleteBrand failed:', e);
+      return { success: false, error: e.message || 'Supabase Delete Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const brands = await getBrands();
+    const filteredBrands = brands.filter(b => b.id !== id);
+    localStorage.setItem(BRANDS_KEY, JSON.stringify(filteredBrands));
+
+    // Cascade delete products under this brand
+    const products = await getProductsRaw();
+    const filteredProducts = products.filter(p => p.brand_id !== id);
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(filteredProducts));
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+const getProductsRaw = async () => {
+  let localData = localStorage.getItem(PRODUCTS_KEY);
+  if (!localData) {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(DEFAULT_PRODUCTS));
+    return DEFAULT_PRODUCTS;
+  }
+  try {
+    return JSON.parse(localData);
+  } catch (e) {
+    return DEFAULT_PRODUCTS;
+  }
+};
+
+export const getProducts = async () => {
+  if (isSupabaseConnected()) {
+    try {
+      // Query products joined with brands
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, brands(name)')
+        .order('name', { ascending: true });
+      if (error) throw error;
+      
+      // Map to consistent format
+      return data.map(p => ({
+        ...p,
+        brand_name: p.brands ? p.brands.name : 'Unknown Brand'
+      }));
+    } catch (e) {
+      console.error('Supabase getProducts failed, falling back to LocalStorage:', e);
+    }
+  }
+
+  // LocalStorage Fallback
+  const products = await getProductsRaw();
+  const brands = await getBrands();
+  return products.map(p => {
+    const brand = brands.find(b => b.id === p.brand_id);
+    return {
+      ...p,
+      brand_name: brand ? brand.name : 'Unknown Brand'
+    };
+  });
+};
+
+export const addProduct = async (product) => {
+  const newProduct = {
+    ...product,
+    name: product.name.trim(),
+    quantity: parseInt(product.quantity) || 0
+  };
+
+  if (isSupabaseConnected()) {
+    try {
+      const { id, ...supabaseProduct } = newProduct;
+      const { data, error } = await supabase
+        .from('products')
+        .insert([supabaseProduct])
+        .select('*, brands(name)');
+      if (error) throw error;
+      return { 
+        success: true, 
+        data: {
+          ...data[0],
+          brand_name: data[0].brands ? data[0].brands.name : 'Unknown Brand'
+        } 
+      };
+    } catch (e) {
+      console.error('Supabase addProduct failed:', e);
+      return { success: false, error: e.message || 'Supabase Insert Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const products = await getProductsRaw();
+    const exists = products.some(p => p.brand_id === newProduct.brand_id && p.name.toLowerCase() === newProduct.name.toLowerCase());
+    if (exists) {
+      return { success: false, error: `This item already exists under this brand!` };
+    }
+    const createdProduct = {
+      ...newProduct,
+      id: `prod-${Date.now()}`
+    };
+    products.push(createdProduct);
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    
+    const brands = await getBrands();
+    const brand = brands.find(b => b.id === createdProduct.brand_id);
+    return { 
+      success: true, 
+      data: {
+        ...createdProduct,
+        brand_name: brand ? brand.name : 'Unknown Brand'
+      } 
+    };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const adjustProductQuantity = async (id, delta) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { data: current, error: getErr } = await supabase
+        .from('products')
+        .select('quantity')
+        .eq('id', id)
+        .single();
+      if (getErr) throw getErr;
+
+      const newQty = Math.max(0, (current.quantity || 0) + delta);
+
+      const { data, error } = await supabase
+        .from('products')
+        .update({ quantity: newQty })
+        .eq('id', id)
+        .select();
+      if (error) throw error;
+      return { success: true, data: data[0] };
+    } catch (e) {
+      console.error('Supabase adjustProductQuantity failed:', e);
+      return { success: false, error: e.message || 'Supabase Update Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const products = await getProductsRaw();
+    const index = products.findIndex(p => p.id === id);
+    if (index === -1) {
+      return { success: false, error: 'Product not found.' };
+    }
+    products[index].quantity = Math.max(0, (products[index].quantity || 0) + delta);
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+    return { success: true, data: products[index] };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+export const deleteProduct = async (id) => {
+  if (isSupabaseConnected()) {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch (e) {
+      console.error('Supabase deleteProduct failed:', e);
+      return { success: false, error: e.message || 'Supabase Delete Error' };
+    }
+  }
+
+  // LocalStorage Fallback
+  try {
+    const products = await getProductsRaw();
+    const filtered = products.filter(p => p.id !== id);
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(filtered));
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: 'LocalStorage writing failed.' };
+  }
+};
+
+

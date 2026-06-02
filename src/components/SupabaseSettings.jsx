@@ -137,7 +137,38 @@ alter table attendance enable row level security;
 create policy "Allow public read access" on attendance for select using (true);
 create policy "Allow public insert" on attendance for insert with check (true);
 create policy "Allow public update" on attendance for update using (true);
-create policy "Allow public delete" on attendance for delete using (true);`;
+create policy "Allow public delete" on attendance for delete using (true);
+
+-- 4. Brands Database Table
+create table brands (
+  id uuid default gen_random_uuid() primary key,
+  name text not null unique,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS and public policies for brands
+alter table brands enable row level security;
+create policy "Allow public read access" on brands for select using (true);
+create policy "Allow public insert" on brands for insert with check (true);
+create policy "Allow public update" on brands for update using (true);
+create policy "Allow public delete" on brands for delete using (true);
+
+-- 5. Products Inventory Table
+create table products (
+  id uuid default gen_random_uuid() primary key,
+  brand_id uuid references brands(id) on delete cascade not null,
+  name text not null,
+  quantity integer not null default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique (brand_id, name)
+);
+
+-- Enable RLS and public policies for products
+alter table products enable row level security;
+create policy "Allow public read access" on products for select using (true);
+create policy "Allow public insert" on products for insert with check (true);
+create policy "Allow public update" on products for update using (true);
+create policy "Allow public delete" on products for delete using (true);`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sqlSchema);
