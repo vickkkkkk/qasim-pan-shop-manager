@@ -44,7 +44,7 @@ const StockManager = ({ currentUser }) => {
   const [newProduct, setNewProduct] = useState({
     brand_id: '',
     name: '',
-    quantity: 0
+    quantity: ''
   });
 
   // Inline brand toggle state inside add product modal
@@ -145,7 +145,7 @@ const StockManager = ({ currentUser }) => {
       setNewProduct(prev => ({
         ...prev,
         name: '',
-        quantity: 0
+        quantity: ''
       }));
       setIsProductModalOpen(false);
       await loadInventory();
@@ -920,7 +920,13 @@ const StockManager = ({ currentUser }) => {
                   min="0"
                   placeholder="0"
                   value={newProduct.quantity}
-                  onChange={(e) => setNewProduct(prev => ({ ...prev, quantity: Math.max(0, parseInt(e.target.value) || 0) }))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewProduct(prev => ({ 
+                      ...prev, 
+                      quantity: val === '' ? '' : Math.max(0, parseInt(val) || 0) 
+                    }));
+                  }}
                   className="form-input"
                   required
                 />
