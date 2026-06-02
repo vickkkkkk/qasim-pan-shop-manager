@@ -157,10 +157,11 @@ create policy "Allow public delete" on brands for delete using (true);
 create table products (
   id uuid default gen_random_uuid() primary key,
   brand_id uuid references brands(id) on delete cascade not null,
+  product_name text not null,
   name text not null,
   quantity integer not null default 0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  unique (brand_id, name)
+  unique (brand_id, product_name, name)
 );
 
 -- Enable RLS and public policies for products

@@ -43,6 +43,7 @@ const StockManager = ({ currentUser }) => {
   const [newBrandName, setNewBrandName] = useState('');
   const [newProduct, setNewProduct] = useState({
     brand_id: '',
+    product_name: '',
     name: '',
     quantity: ''
   });
@@ -134,16 +135,17 @@ const StockManager = ({ currentUser }) => {
   const handleAddProductSubmit = async (e) => {
     e.preventDefault();
     if (isViewer) return;
-    if (!newProduct.brand_id || !newProduct.name.trim()) {
-      showFeedback('Both Brand and Product Name are required.', 'error');
+    if (!newProduct.brand_id || !newProduct.product_name.trim() || !newProduct.name.trim()) {
+      showFeedback('Brand, Product Name, and Size/Item are required.', 'error', 'error');
       return;
     }
 
     const result = await addProduct(newProduct);
     if (result.success) {
-      showFeedback(`Product "${newProduct.name}" added successfully!`);
+      showFeedback(`Product "${newProduct.product_name} - ${newProduct.name}" added successfully!`);
       setNewProduct(prev => ({
         ...prev,
+        product_name: '',
         name: '',
         quantity: ''
       }));
@@ -215,6 +217,7 @@ const StockManager = ({ currentUser }) => {
   // Filtered listing
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (p.product_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           p.brand_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesBrand = selectedBrandFilter === 'all' || p.brand_id === selectedBrandFilter;
     return matchesSearch && matchesBrand;
@@ -379,7 +382,15 @@ const StockManager = ({ currentUser }) => {
             </button>
 
             <button 
-              onClick={() => setIsProductModalOpen(true)}
+              onClick={() => {
+                setNewProduct({
+                  brand_id: brands[0]?.id || '',
+                  product_name: '',
+                  name: '',
+                  quantity: ''
+                });
+                setIsProductModalOpen(true);
+              }}
               className="btn btn-primary"
               style={{ padding: '10px 18px', borderRadius: '10px' }}
             >
@@ -456,6 +467,7 @@ const StockManager = ({ currentUser }) => {
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                     <th style={{ padding: '14px 16px', fontSize: '12.5px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Brand</th>
+                    <th style={{ padding: '14px 16px', fontSize: '12.5px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product Name</th>
                     <th style={{ padding: '14px 16px', fontSize: '12.5px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product Size / Item</th>
                     <th style={{ padding: '14px 16px', fontSize: '12.5px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
                     <th style={{ padding: '14px 16px', fontSize: '12.5px', fontWeight: '700', color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>In Stock</th>
@@ -487,7 +499,14 @@ const StockManager = ({ currentUser }) => {
 
                         {/* Product Name Column */}
                         <td style={{ padding: '14px 16px' }}>
-                          <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '14px', fontWeight: '500' }}>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '14px', fontWeight: '600' }}>
+                            {p.product_name || p.brand_name}
+                          </span>
+                        </td>
+
+                        {/* Product Size Column */}
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '14px', fontWeight: '500' }}>
                             {p.name}
                           </span>
                         </td>
@@ -899,12 +918,25 @@ const StockManager = ({ currentUser }) => {
                 )}
               </div>
 
-              {/* Product Size Name */}
+              {/* Product Name */}
               <div>
-                <label className="form-label">Product Name / Size</label>
+                <label className="form-label">Product Name</label>
                 <input 
                   type="text"
-                  placeholder="e.g. Zero sugar can, Can, 1.5L, 350ml"
+                  placeholder="e.g. Coke Zero Sugar, Pepsi Regular, Capstan"
+                  value={newProduct.product_name}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, product_name: e.target.value }))}
+                  className="form-input"
+                  required
+                />
+              </div>
+
+              {/* Product Size Name */}
+              <div>
+                <label className="form-label">Product Size / Item Type</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Can, 350ml, 1.5L, Single Cigarette"
                   value={newProduct.name}
                   onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
                   className="form-input"

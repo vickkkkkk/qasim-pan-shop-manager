@@ -712,22 +712,22 @@ const DEFAULT_BRANDS = [
 ];
 
 const DEFAULT_PRODUCTS = [
-  { id: 'prod-1', brand_id: 'brand-1', name: 'Zero Sugar Can', quantity: 24 },
-  { id: 'prod-2', brand_id: 'brand-1', name: 'Regular Can', quantity: 48 },
-  { id: 'prod-3', brand_id: 'brand-1', name: '1.5L PET', quantity: 12 },
-  { id: 'prod-4', brand_id: 'brand-1', name: '500ml PET', quantity: 30 },
+  { id: 'prod-1', brand_id: 'brand-1', product_name: 'Coke Zero Sugar', name: 'Can', quantity: 24 },
+  { id: 'prod-2', brand_id: 'brand-1', product_name: 'Coke Regular', name: 'Can', quantity: 48 },
+  { id: 'prod-3', brand_id: 'brand-1', product_name: 'Coke Regular', name: '1.5L PET', quantity: 12 },
+  { id: 'prod-4', brand_id: 'brand-1', product_name: 'Coke Regular', name: '500ml PET', quantity: 30 },
   
-  { id: 'prod-5', brand_id: 'brand-2', name: 'Can', quantity: 36 },
-  { id: 'prod-6', brand_id: 'brand-2', name: '1.5L PET', quantity: 15 },
-  { id: 'prod-7', brand_id: 'brand-2', name: '345ml Bottle', quantity: 24 },
+  { id: 'prod-5', brand_id: 'brand-2', product_name: 'Pepsi Regular', name: 'Can', quantity: 36 },
+  { id: 'prod-6', brand_id: 'brand-2', product_name: 'Pepsi Regular', name: '1.5L PET', quantity: 15 },
+  { id: 'prod-7', brand_id: 'brand-2', product_name: 'Pepsi Regular', name: '345ml Bottle', quantity: 24 },
   
-  { id: 'prod-8', brand_id: 'brand-3', name: 'Mango Juice Box', quantity: 40 },
+  { id: 'prod-8', brand_id: 'brand-3', product_name: 'Shezan Mango', name: 'Juice Box', quantity: 40 },
   
-  { id: 'prod-9', brand_id: 'brand-4', name: 'Single Cigarette', quantity: 200 },
-  { id: 'prod-10', brand_id: 'brand-4', name: 'Pack of 20', quantity: 15 },
+  { id: 'prod-9', brand_id: 'brand-4', product_name: 'Gold Leaf', name: 'Single Cigarette', quantity: 200 },
+  { id: 'prod-10', brand_id: 'brand-4', product_name: 'Gold Leaf', name: 'Pack of 20', quantity: 15 },
   
-  { id: 'prod-11', brand_id: 'brand-5', name: 'Single Cigarette', quantity: 120 },
-  { id: 'prod-12', brand_id: 'brand-5', name: 'Pack of 20', quantity: 10 }
+  { id: 'prod-11', brand_id: 'brand-5', product_name: 'Capstan', name: 'Single Cigarette', quantity: 120 },
+  { id: 'prod-12', brand_id: 'brand-5', product_name: 'Capstan', name: 'Pack of 20', quantity: 10 }
 ];
 
 export const getBrands = async () => {
@@ -878,6 +878,7 @@ export const addProduct = async (product) => {
   const newProduct = {
     ...product,
     name: product.name.trim(),
+    product_name: (product.product_name || '').trim(),
     quantity: parseInt(product.quantity) || 0
   };
 
@@ -905,9 +906,13 @@ export const addProduct = async (product) => {
   // LocalStorage Fallback
   try {
     const products = await getProductsRaw();
-    const exists = products.some(p => p.brand_id === newProduct.brand_id && p.name.toLowerCase() === newProduct.name.toLowerCase());
+    const exists = products.some(p => 
+      p.brand_id === newProduct.brand_id && 
+      (p.product_name || '').toLowerCase() === (newProduct.product_name || '').toLowerCase() &&
+      p.name.toLowerCase() === newProduct.name.toLowerCase()
+    );
     if (exists) {
-      return { success: false, error: `This item already exists under this brand!` };
+      return { success: false, error: `This product size/item already exists under this brand!` };
     }
     const createdProduct = {
       ...newProduct,
