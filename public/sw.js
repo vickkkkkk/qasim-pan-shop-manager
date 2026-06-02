@@ -3,7 +3,9 @@ const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/favicon.svg',
-  '/manifest.json'
+  '/manifest.json',
+  '/app_icon_192.png',
+  '/app_icon_512.png'
 ];
 
 // Installation phase: cache core shell files
