@@ -1,0 +1,18 @@
+{
+  "short_name": "Qasim Shop",
+  "name": "Qasim Pan Shop Manager",
+  "description": "Cloud-synced business management dashboard for Qasim Pan Shop",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#07080f",
+  "theme_color": "#14e9b2",
+  "display": "standalone",
+  "orientation": "portrait"
+}
