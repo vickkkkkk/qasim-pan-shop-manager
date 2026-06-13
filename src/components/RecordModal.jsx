@@ -53,13 +53,13 @@ const RecordModal = ({ isOpen, onClose, onSave, recordToEdit = null }) => {
   };
 
   // Calculations in real time
-  const salesNum = parseFloat(formData.sales) || 0;
   const expensesNum = parseFloat(formData.expenses) || 0;
   const cashNum = parseFloat(formData.cash_in_hand) || 0;
   const accountNum = parseFloat(formData.payment_in_account) || 0;
+  const salesNum = cashNum + accountNum; // Auto-calculate total revenue/sales
   const marginPercent = formData.profit_margin_percentage;
 
-  const totalRevenueCalculated = cashNum + accountNum;
+  const totalRevenueCalculated = salesNum;
   const grossProfitCalculated = salesNum * (marginPercent / 100);
   const netProfitCalculated = grossProfitCalculated - expensesNum;
 
@@ -72,7 +72,7 @@ const RecordModal = ({ isOpen, onClose, onSave, recordToEdit = null }) => {
       return;
     }
     if (salesNum <= 0) {
-      setValidationError('Sales must be a positive number.');
+      setValidationError('Total sales (Cash + Online Payment) must be a positive number.');
       return;
     }
     if (parseFloat(formData.purchases) < 0) {
@@ -221,19 +221,23 @@ const RecordModal = ({ isOpen, onClose, onSave, recordToEdit = null }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {/* Sales */}
             <div>
-              <label className="form-label">Sales (PKR)</label>
+              <label className="form-label">Sales (PKR) - Auto-calculated</label>
               <div style={{ position: 'relative' }}>
                 <input 
                   type="number"
                   name="sales"
                   placeholder="0"
-                  value={formData.sales}
-                  onChange={handleChange}
-                  required
+                  value={salesNum || ''}
+                  readOnly
                   className="form-input"
-                  style={{ paddingLeft: '40px' }}
+                  style={{ 
+                    paddingLeft: '40px', 
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)', 
+                    color: 'rgba(255, 255, 255, 0.6)', 
+                    cursor: 'not-allowed' 
+                  }}
                 />
-                <DollarSign size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#14e9b2' }} />
+                <DollarSign size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#14e9b2', opacity: 0.7 }} />
               </div>
             </div>
 
